@@ -57,9 +57,9 @@ export async function getProductsById(_:any,args:{
             }
         }
     });
-    if(product)
-    return product;
-    else return []
+if (product) return product;
+else return null;
+
   } catch (error: any) {
     console.log("Error creating product:", error.message);
     return [];
@@ -70,9 +70,13 @@ export async function createSale(_:any,args:{
     quantity:number,
 }) {
   try {
-    const sale = await prismaclient.sale.create({
-        data:args
-    });
+const sale = await prismaclient.sale.create({
+  data: {
+    productId: args.productId,
+    quantity: args.quantity,
+  },
+});
+
     if(sale){
         await prismaclient.product.update({
             where:{

@@ -10,28 +10,23 @@ import {
   updateUserProfile,
   updateUserRole,
 } from "./resolvers/user";
-import { addProduct, createSale, getAllProducts, getProductsById } from "./resolvers/products";
+import {
+  addProduct,
+  createSale,
+  getAllProducts,
+  getProductsById,
+} from "./resolvers/products";
 const typeDefs = gql`
-  type User {
-    id: String!
-    name: String!
-    email: String!
-    username: String!
-    password: String!
-    avatar: String
-    role: String
-  }
-
   type Query {
     loginUser(userCred: String!, password: String!): User
-    logOutUser:Boolean
+    logOutUser: Boolean
     getAllusers: [User]
-    getAllProducts:[Product]
-    getProductsById(id:String!):Product
+    getAllProducts: [Product]
+    getProductsById(id: String!): Product
   }
 
   type Mutation {
-    createSale(productId:String!,quantity:Int!,):Boolean
+    createSale(productId: String!, quantity: Int!): Boolean
     createUser(
       name: String!
       email: String!
@@ -51,20 +46,31 @@ const typeDefs = gql`
     addProduct(
       title: String!
       description: String!
-      category: String!
+      category: ProductCategory!
       price: Float!
       stock: Int!
       imageUrl: String!
     ): Product
   }
+  enum ProductCategory {
+    electronics
+    beauty
+    food
+    decoration
+    accessories
+    clothing
+    furniture
+    other
+  }
   type User {
-    id: String
-    name: String
-    email: String
+    id: String!
+    name: String!
+    email: String!
+    username: String!
     avatar: String
-    username: String
     role: String
   }
+
   type Product {
     id: String
     title: String
@@ -73,13 +79,13 @@ const typeDefs = gql`
     price: Float
     stock: Int
     imageUrl: String
-    sales:[Sale]
+    sales: [Sale]
   }
   type Sale {
-    id:String
-   productId:String
-   quantity:Int
-   createdAt: String
+    id: String
+    productId: String
+    quantity: Int
+    createdAt: String
   }
 `;
 
@@ -106,8 +112,15 @@ const server = new ApolloServer({
 });
 
 // Typescript: req has the type NextRequest
-const handler = startServerAndCreateNextHandler<NextRequest>(server, {
-  context: async (req) => ({ req }),
+const handler = startServerAndCreateNextHandler(server, {
+  context: async req => ({ req }),
 });
 
-export { handler as GET, handler as POST };
+
+export async function GET(request: Request) {
+  return handler(request);
+}
+
+export async function POST(request: Request) {
+  return handler(request);
+}
