@@ -114,26 +114,15 @@ const server = new ApolloServer({
 });
 
 // Typescript: req has the type NextRequest
-const handler = startServerAndCreateNextHandler<NextRequest>(server, {
-  context: async (req) => ({ req }),
+const handler = startServerAndCreateNextHandler(server, {
+  context: async req => ({ req }),
 });
 
-// IMPORTANT: Use these wrappers. Do NOT also do `export { handler as GET, handler as POST }`
-export async function GET(request: NextRequest) {
-  // With the landing page plugin enabled, plain GET (no ?query=...) returns the Sandbox HTML (200 OK)
+
+export async function GET(request: Request) {
   return handler(request);
 }
 
-export async function POST(request: NextRequest) {
-  // Proper GraphQL POST with JSON body
+export async function POST(request: Request) {
   return handler(request);
-}
-
-// Handle CORS preflight / health probes cleanly (prevents spurious 400s)
-export async function OPTIONS() {
-  return new Response(null, { status: 204 });
-}
-
-export async function HEAD() {
-  return new Response(null, { status: 200 });
 }
