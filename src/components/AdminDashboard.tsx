@@ -27,7 +27,7 @@ export default function AdminDashboard() {
     async function getusers() {
       try {
         const data: { getAllusers: user[] } =
-          (await graphqlClient.request(GET_ALL_USER)) || [];
+          await graphqlClient.request(GET_ALL_USER) || [];
         setUsers(data?.getAllusers || []);
       } catch (error) {
         console.log(error);

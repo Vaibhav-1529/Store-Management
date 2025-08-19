@@ -2,6 +2,8 @@ import { ApolloServer } from "@apollo/server";
 import { startServerAndCreateNextHandler } from "@as-integrations/next";
 import { gql } from "graphql-tag";
 import { NextRequest } from "next/server";
+import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default";
+
 import {
   createUser,
   getAllusers,
@@ -75,7 +77,7 @@ const typeDefs = gql`
     id: String
     title: String
     description: String
-    category: String
+    category: ProductCategory
     price: Float
     stock: Int
     imageUrl: String
@@ -112,15 +114,26 @@ const server = new ApolloServer({
 });
 
 // Typescript: req has the type NextRequest
-const handler = startServerAndCreateNextHandler(server, {
-  context: async req => ({ req }),
+const handler = startServerAndCreateNextHandler<NextRequest>(server, {
+  context: async (req) => ({ req }),
 });
 
-
-export async function GET(request: Request) {
+// IMPORTANT: Use these wrappers. Do NOT also do `export { handler as GET, handler as POST }`
+export async function GET(request: NextRequest) {
+  // With the landing page plugin enabled, plain GET (no ?query=...) returns the Sandbox HTML (200 OK)
   return handler(request);
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  // Proper GraphQL POST with JSON body
   return handler(request);
+}
+
+// Handle CORS preflight / health probes cleanly (prevents spurious 400s)
+export async function OPTIONS() {
+  return new Response(null, { status: 204 });
+}
+
+export async function HEAD() {
+  return new Response(null, { status: 200 });
 }

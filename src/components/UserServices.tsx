@@ -23,16 +23,16 @@ import graphqlClient from "@/services/GraphQlClient/gqlclient";
 import { LOG_OUT } from "@/HelperFunc/qgl/queries";
 export default function UserServices() {
     const {user,setUser}=useContext(UserContext)
-    async function handleLogOut(){
-      try {
-        const res=await graphqlClient.request(LOG_OUT)as {logOut:boolean};
-        if(res.logOut){
-          setUser(null)
-        }
-      } catch (error) {
+    // async function handleLogOut(){
+    //   try {
+    //     const res=await graphqlClient.request(LOG_OUT)as {logOut:boolean};
+    //     if(res.logOut){
+    //       setUser(null)
+    //     }
+    //   } catch (error) {
         
-      }
-    }
+    //   }
+    // }
   return (
     <div>
       <Popover.Root>
