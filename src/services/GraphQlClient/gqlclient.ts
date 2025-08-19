@@ -1,3 +1,3 @@
 import { GraphQLClient } from "graphql-request";
-const graphqlClient=new GraphQLClient(process.env.NEXTAUTH_URL+"/api/graphql")
+const graphqlClient=new GraphQLClient("https://store-management-nine-kappa.vercel.app//api/graphql")
 export default graphqlClient;
