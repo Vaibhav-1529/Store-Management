@@ -2,8 +2,6 @@ import { ApolloServer } from "@apollo/server";
 import { startServerAndCreateNextHandler } from "@as-integrations/next";
 import { gql } from "graphql-tag";
 import { NextRequest } from "next/server";
-import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default";
-
 import {
   createUser,
   getAllusers,
@@ -18,6 +16,8 @@ import {
   getAllProducts,
   getProductsById,
 } from "./resolvers/products";
+
+// --- TypeDefs ---
 const typeDefs = gql`
   type Query {
     loginUser(userCred: String!, password: String!): User
@@ -54,6 +54,7 @@ const typeDefs = gql`
       imageUrl: String!
     ): Product
   }
+
   enum ProductCategory {
     electronics
     beauty
@@ -64,6 +65,7 @@ const typeDefs = gql`
     furniture
     other
   }
+
   type User {
     id: String!
     name: String!
@@ -83,6 +85,7 @@ const typeDefs = gql`
     imageUrl: String
     sales: [Sale]
   }
+
   type Sale {
     id: String
     productId: String
@@ -91,6 +94,7 @@ const typeDefs = gql`
   }
 `;
 
+// --- Resolvers ---
 const resolvers = {
   Query: {
     loginUser,
@@ -108,21 +112,52 @@ const resolvers = {
   },
 };
 
+// --- Apollo Server ---
 const server = new ApolloServer({
   typeDefs,
   resolvers,
 });
 
-// Typescript: req has the type NextRequest
-const handler = startServerAndCreateNextHandler(server, {
-  context: async req => ({ req }),
+// --- Handler ---
+const handler = startServerAndCreateNextHandler<NextRequest>(server, {
+  context: async (req) => ({ req }),
 });
 
+// --- CORS wrapper ---
+async function withCORS(request: Request) {
+  // Handle preflight OPTIONS request
+  if (request.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "https://store-management-i4k66l0x2-vaibhav-1529s-projects.vercel.app",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      },
+    });
+  }
 
+  const response = await handler(request);
+
+  // Add CORS headers to Apollo response
+  response.headers.set(
+    "Access-Control-Allow-Origin",
+    "https://store-management-i4k66l0x2-vaibhav-1529s-projects.vercel.app"
+  );
+  response.headers.set("Access-Control-Allow-Credentials", "true");
+
+  return response;
+}
+
+// --- Next.js route exports ---
 export async function GET(request: Request) {
-  return handler(request);
+  return withCORS(request);
 }
 
 export async function POST(request: Request) {
-  return handler(request);
+  return withCORS(request);
+}
+
+export async function OPTIONS(request: Request) {
+  return withCORS(request);
 }
