@@ -30,7 +30,6 @@ export default function UserCtx({ children }: { children: ReactNode }) {
     async function fetchUser() {
       const res = await getuserFromcookies() as User | null;
       if (!res) {
-        // router.push("/login");
       } else {
         setUser(res);
       }

@@ -26,6 +26,7 @@ export default function LoginPage() {
         userCred:cred,
         password
       })
+      console.log(data);
       if(data.loginUser){
         setUser(data?.loginUser)
         window.location.href="/"
