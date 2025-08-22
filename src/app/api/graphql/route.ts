@@ -142,7 +142,7 @@ async function withCORS(request: Request) {
   // Add CORS headers to Apollo response
   response.headers.set(
     "Access-Control-Allow-Origin",
-    "https://store-management-i4k66l0x2-vaibhav-1529s-projects.vercel.app"
+    process.env.NECT_PUBLIC_URL || "http://localhost:3000",
   );
   response.headers.set("Access-Control-Allow-Credentials", "true");
 
