@@ -2,6 +2,8 @@ import { ApolloServer } from "@apollo/server";
 import { startServerAndCreateNextHandler } from "@as-integrations/next";
 import { gql } from "graphql-tag";
 import { NextRequest } from "next/server";
+import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default";
+
 import {
   createUser,
   getAllusers,
@@ -16,7 +18,6 @@ import {
   getAllProducts,
   getProductsById,
 } from "./resolvers/products";
-
 const typeDefs = gql`
   type Query {
     loginUser(userCred: String!, password: String!): User
@@ -53,7 +54,6 @@ const typeDefs = gql`
       imageUrl: String!
     ): Product
   }
-
   enum ProductCategory {
     electronics
     beauty
@@ -64,7 +64,6 @@ const typeDefs = gql`
     furniture
     other
   }
-
   type User {
     id: String!
     name: String!
@@ -84,7 +83,6 @@ const typeDefs = gql`
     imageUrl: String
     sales: [Sale]
   }
-
   type Sale {
     id: String
     productId: String
@@ -115,46 +113,16 @@ const server = new ApolloServer({
   resolvers,
 });
 
-const handler = startServerAndCreateNextHandler<NextRequest>(server, {
-  context: async (req) => ({ req }),
+// Typescript: req has the type NextRequest
+const handler = startServerAndCreateNextHandler(server, {
+  context: async req => ({ req }),
 });
-const allowedOrigins = [
-  process.env.NEXT_PUBLIC_CLIENT_URL || "",
-  "http://localhost:3000",
-];
 
-async function withCORS(request: Request) {
-  const origin = request.headers.get("origin") || "";
-  const isAllowed =
-    allowedOrigins.includes(origin) || origin.endsWith(".vercel.app");
-  const allowedOrigin = isAllowed ? origin : allowedOrigins[0] || "*";
-
-  if (request.method === "OPTIONS") {
-    return new Response(null, {
-      status: 204,
-      headers: {
-        "Access-Control-Allow-Origin": allowedOrigin,
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Allow-Credentials": "true",
-      },
-    });
-  }
-
-  const response = await handler(request);
-  response.headers.set("Access-Control-Allow-Origin", allowedOrigin);
-  response.headers.set("Access-Control-Allow-Credentials", "true");
-  return response;
-}
 
 export async function GET(request: Request) {
-  return withCORS(request);
+  return handler(request);
 }
 
 export async function POST(request: Request) {
-  return withCORS(request);
-}
-
-export async function OPTIONS(request: Request) {
-  return withCORS(request);
+  return handler(request);
 }
