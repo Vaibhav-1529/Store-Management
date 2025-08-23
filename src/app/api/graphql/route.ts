@@ -17,7 +17,6 @@ import {
   getProductsById,
 } from "./resolvers/products";
 
-// --- TypeDefs ---
 const typeDefs = gql`
   type Query {
     loginUser(userCred: String!, password: String!): User
@@ -94,7 +93,6 @@ const typeDefs = gql`
   }
 `;
 
-// --- Resolvers ---
 const resolvers = {
   Query: {
     loginUser,
@@ -112,37 +110,30 @@ const resolvers = {
   },
 };
 
-// --- Apollo Server ---
 const server = new ApolloServer({
   typeDefs,
   resolvers,
 });
 
-// --- Handler ---
 const handler = startServerAndCreateNextHandler<NextRequest>(server, {
   context: async (req) => ({ req }),
 });
-
-// --- Allowed Origins ---
 const allowedOrigins = [
-  process.env.NEXT_PUBLIC_CLIENT_URL, // your production frontend
-  "http://localhost:3000",            // local dev
+  process.env.NEXT_PUBLIC_CLIENT_URL || "",
+  "http://localhost:3000",
 ];
 
-// --- CORS wrapper ---
 async function withCORS(request: Request) {
-  const origin = request.headers.get("origin");
+  const origin = request.headers.get("origin") || "";
+  const isAllowed =
+    allowedOrigins.includes(origin) || origin.endsWith(".vercel.app");
+  const allowedOrigin = isAllowed ? origin : allowedOrigins[0] || "*";
 
-  // Pick allowed origin or fallback null (no CORS)
-  const allowedOrigin =
-    origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
-
-  // Handle preflight OPTIONS
   if (request.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
       headers: {
-        "Access-Control-Allow-Origin": allowedOrigin || "*",
+        "Access-Control-Allow-Origin": allowedOrigin,
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
         "Access-Control-Allow-Credentials": "true",
@@ -151,17 +142,11 @@ async function withCORS(request: Request) {
   }
 
   const response = await handler(request);
-
-  // Add CORS headers to Apollo response
-  if (allowedOrigin) {
-    response.headers.set("Access-Control-Allow-Origin", allowedOrigin);
-    response.headers.set("Access-Control-Allow-Credentials", "true");
-  }
-
+  response.headers.set("Access-Control-Allow-Origin", allowedOrigin);
+  response.headers.set("Access-Control-Allow-Credentials", "true");
   return response;
 }
 
-// --- Next.js route exports ---
 export async function GET(request: Request) {
   return withCORS(request);
 }
