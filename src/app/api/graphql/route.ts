@@ -123,17 +123,29 @@ const handler = startServerAndCreateNextHandler<NextRequest>(server, {
   context: async (req) => ({ req }),
 });
 
+// --- Allowed Origins ---
+const allowedOrigins = [
+  process.env.NEXT_PUBLIC_CLIENT_URL, // your production frontend
+  "http://localhost:3000",            // local dev
+];
+
 // --- CORS wrapper ---
 async function withCORS(request: Request) {
-  // Handle preflight OPTIONS request
+  const origin = request.headers.get("origin");
+
+  // Pick allowed origin or fallback null (no CORS)
+  const allowedOrigin =
+    origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+
+  // Handle preflight OPTIONS
   if (request.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
       headers: {
-        "Access-Control-Allow-Origin":
-          "https://store-management-vaibhav-1529s-projects.vercel.app",
+        "Access-Control-Allow-Origin": allowedOrigin || "*",
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Allow-Credentials": "true",
       },
     });
   }
@@ -141,11 +153,10 @@ async function withCORS(request: Request) {
   const response = await handler(request);
 
   // Add CORS headers to Apollo response
-  response.headers.set(
-    "Access-Control-Allow-Origin",
-    process.env.NEXT_PUBLIC_URL || "http://localhost:3000"
-  );
-  response.headers.set("Access-Control-Allow-Credentials", "true");
+  if (allowedOrigin) {
+    response.headers.set("Access-Control-Allow-Origin", allowedOrigin);
+    response.headers.set("Access-Control-Allow-Credentials", "true");
+  }
 
   return response;
 }
